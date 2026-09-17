@@ -3,6 +3,15 @@ name: GitHub Pages 배포
 on:
   push:
     branches: [main]
+  # 시간표 자동 업데이트가 끝나면 이어서 배포합니다.
+  #
+  # 그 워크플로는 GITHUB_TOKEN 으로 데이터를 커밋하는데, GitHub은 이렇게
+  # 만들어진 푸시로는 다른 워크플로를 실행하지 않습니다(무한 반복 방지).
+  # 그래서 push 트리거만으로는 새 시간표가 영영 배포되지 않습니다.
+  # workflow_run 은 그 제약을 받지 않으므로 여기서 이어받습니다.
+  workflow_run:
+    workflows: ['시간표 자동 업데이트']
+    types: [completed]
   workflow_dispatch:
 
 permissions:
@@ -16,12 +25,19 @@ concurrency:
 
 jobs:
   deploy:
+    # 시간표 업데이트가 실패했다면 배포하지 않습니다.
+    if: >-
+      github.event_name != 'workflow_run' ||
+      github.event.workflow_run.conclusion == 'success'
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
     steps:
+      # workflow_run 으로 실행될 때도 main 의 최신 커밋(갱신된 시간표)을 받습니다.
       - uses: actions/checkout@v4
+        with:
+          ref: main
       # enablement: true — 저장소 Settings에서 Pages를 직접 켜지 않아도
       # 이 워크플로가 Pages를 자동으로 켭니다. (Pages를 쓸 수 있는 저장소일 때)
       - uses: actions/configure-pages@v5
