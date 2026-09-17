@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="ko" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#ef7c1c">
+<meta name="description" content="구파발역 3호선 출근길 도우미 — 도착역을 즐겨찾기하고 목표 도착 시각에 맞춰 집에서 나갈 시간을 알려줍니다.">
+<title>구파발 출근길 · 3호선</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='46' fill='%23ef7c1c'/><text x='50' y='68' font-size='54' font-family='sans-serif' font-weight='bold' fill='white' text-anchor='middle'>3</text></svg>">
+<link rel="stylesheet" href="assets/app.css">
+</head>
+<body>
+<div class="wrap">
+
+  <header class="head">
+    <div class="line-chip"><span class="dot"></span>서울 지하철 3호선</div>
+    <h1><em>구파발</em>역 출근길</h1>
+    <div class="now-clock" id="clock">--:--:--</div>
+    <div class="now-date" id="dateLine"></div>
+  </header>
+
+  <!-- 즐겨찾기 도착역 -->
+  <nav class="fav-bar" id="favBar" aria-label="즐겨찾기 도착역"></nav>
+
+  <!-- 선택한 도착역 요약 -->
+  <section class="panel summary" id="summary" hidden>
+    <div class="panel-title">▶ 지금 나가야 할 시간</div>
+    <div class="summary-route" id="sumRoute"></div>
+    <div class="summary-target" id="sumTarget"></div>
+
+    <div class="deadline">
+      <div class="deadline-body">
+        <div class="deadline-label" id="deadlineLabel">집에서 출발</div>
+        <div class="deadline-time" id="deadlineTime">--:--</div>
+        <div class="deadline-note" id="deadlineNote"></div>
+      </div>
+      <div class="deadline-count" id="deadlineCount">–</div>
+    </div>
+
+    <div class="summary-stats">
+      <div class="stat"><div class="k">집→구파발</div><div class="v" id="statHome">–</div></div>
+      <div class="stat"><div class="k">열차</div><div class="v" id="statRide">–</div></div>
+      <div class="stat"><div class="k">역→사무실</div><div class="v" id="statOffice">–</div></div>
+    </div>
+  </section>
+
+  <!-- 즐겨찾기가 없을 때 -->
+  <section class="panel" id="noFav" hidden>
+    <div class="empty">
+      아직 즐겨찾기한 도착역이 없습니다.<br>
+      위의 <b>＋ 도착역 추가</b>를 눌러<br>
+      자주 가는 역과 목표 도착 시각을 등록해보세요.
+    </div>
+  </section>
+
+  <!-- 다음 열차 -->
+  <section class="panel" id="trainsPanel" hidden>
+    <div class="panel-title">
+      <span>다음 열차 · 집에서 나갈 시각</span>
+      <span id="dirLabel"></span>
+    </div>
+    <div class="trains" id="trains"></div>
+  </section>
+
+  <!-- 설정 -->
+  <section class="panel">
+    <div class="panel-title">도보 · 여유 설정</div>
+    <div class="field">
+      <label>집 → 구파발역 승강장
+        <small>집에서 나와 열차를 탈 수 있기까지 걸리는 시간</small>
+      </label>
+      <input type="number" id="homeWalk" min="0" max="180" step="1" inputmode="numeric">
+      <span class="unit">분</span>
+    </div>
+    <div class="field">
+      <label>여유 버퍼
+        <small>신호 대기·엘리베이터 등 예비 시간</small>
+      </label>
+      <input type="number" id="buffer" min="0" max="60" step="1" inputmode="numeric">
+      <span class="unit">분</span>
+    </div>
+    <div class="field">
+      <label>요일 기준
+        <small>기본은 오늘 날짜에 맞춰 자동으로 고릅니다</small>
+      </label>
+      <select id="dayType">
+        <option value="auto">자동</option>
+        <option value="weekday">평일</option>
+        <option value="saturday">토요일</option>
+        <option value="holiday">휴일·일요일</option>
+      </select>
+    </div>
+    <div class="hint" style="margin-top:12px">
+      ※ 도착역에서 사무실까지 걷는 시간은 도착역마다 다르므로, 즐겨찾기별로 따로 설정합니다.
+    </div>
+  </section>
+
+  <!-- 전체 시간표 -->
+  <section class="panel">
+    <div class="panel-title">전체 시간표</div>
+    <div class="sched-head">
+      <button class="btn" id="schedToggle" type="button">시간표 펼치기</button>
+    </div>
+    <div id="schedBody" hidden></div>
+  </section>
+
+  <footer class="foot" id="foot"></footer>
+</div>
+
+<!-- 즐겨찾기 추가·수정 -->
+<dialog id="favDialog">
+  <form method="dialog" id="favForm">
+    <h2 id="favDialogTitle">도착역 추가</h2>
+    <p class="hint">회사·학교처럼 자주 가는 곳을 등록해두면, 목표 시각에 맞춰 집에서 나갈 시간을 계산해 드립니다.</p>
+
+    <div class="field">
+      <label>이름 <small>예: 회사, 본사, 학원</small></label>
+      <input type="text" id="favLabel" maxlength="12" placeholder="회사" style="width:120px">
+    </div>
+    <div class="field">
+      <label>도착역 <small>3호선 구파발 이후 정차역</small></label>
+      <select id="favStation" style="max-width:190px"></select>
+    </div>
+    <div class="field">
+      <label>도착역 → 사무실 도보</label>
+      <input type="number" id="favOfficeWalk" min="0" max="120" step="1" inputmode="numeric">
+      <span class="unit">분</span>
+    </div>
+    <div class="field">
+      <label>목표 도착 시각 <small>이 시각까지 사무실에 닿아야 합니다</small></label>
+      <input type="time" id="favTarget">
+    </div>
+
+    <div class="btn-row">
+      <button class="btn danger" type="button" id="favDelete" hidden>삭제</button>
+      <button class="btn" type="button" id="favCancel">취소</button>
+      <button class="btn primary" type="button" id="favSave">저장</button>
+    </div>
+  </form>
+</dialog>
+
+<script src="assets/app.js"></script>
+</body>
+</html>

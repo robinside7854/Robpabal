@@ -1,0 +1,614 @@
+{
+  "meta": {
+    "line": "3",
+    "origin": {
+      "no": "321",
+      "name": "구파발"
+    },
+    "directions": {
+      "up": {
+        "label": "대화 방향",
+        "terminal": "대화"
+      },
+      "down": {
+        "label": "오금 방향",
+        "terminal": "오금"
+      }
+    },
+    "updatedAt": "2026-09-17T02:01:37.501Z",
+    "source": "seed",
+    "sourceLabel": "수동 입력(시드 데이터)",
+    "rideEstimated": true,
+    "notes": [
+      "평일 오금방향 시간표만 손으로 입력된 초기 데이터입니다.",
+      "역간 소요시간은 역당 약 2분으로 잡은 추정치입니다.",
+      "GitHub Actions 자동 업데이트가 한 번 성공하면 전부 실제 공공데이터로 바뀝니다."
+    ]
+  },
+  "stations": [
+    {
+      "no": "320",
+      "name": "지축",
+      "direction": "up",
+      "ride": 2,
+      "rideExpress": null
+    },
+    {
+      "no": "319",
+      "name": "삼송",
+      "direction": "up",
+      "ride": 4,
+      "rideExpress": null
+    },
+    {
+      "no": "318",
+      "name": "원흥",
+      "direction": "up",
+      "ride": 6,
+      "rideExpress": null
+    },
+    {
+      "no": "317",
+      "name": "원당",
+      "direction": "up",
+      "ride": 9,
+      "rideExpress": null
+    },
+    {
+      "no": "316",
+      "name": "화정",
+      "direction": "up",
+      "ride": 11,
+      "rideExpress": null
+    },
+    {
+      "no": "315",
+      "name": "대곡",
+      "direction": "up",
+      "ride": 14,
+      "rideExpress": null
+    },
+    {
+      "no": "314",
+      "name": "백석",
+      "direction": "up",
+      "ride": 16,
+      "rideExpress": null
+    },
+    {
+      "no": "313",
+      "name": "마두",
+      "direction": "up",
+      "ride": 18,
+      "rideExpress": null
+    },
+    {
+      "no": "312",
+      "name": "정발산",
+      "direction": "up",
+      "ride": 20,
+      "rideExpress": null
+    },
+    {
+      "no": "311",
+      "name": "주엽",
+      "direction": "up",
+      "ride": 22,
+      "rideExpress": null
+    },
+    {
+      "no": "310",
+      "name": "대화",
+      "direction": "up",
+      "ride": 24,
+      "rideExpress": null
+    },
+    {
+      "no": "322",
+      "name": "연신내",
+      "direction": "down",
+      "ride": 2,
+      "rideExpress": null
+    },
+    {
+      "no": "323",
+      "name": "불광",
+      "direction": "down",
+      "ride": 4,
+      "rideExpress": null
+    },
+    {
+      "no": "324",
+      "name": "녹번",
+      "direction": "down",
+      "ride": 6,
+      "rideExpress": null
+    },
+    {
+      "no": "325",
+      "name": "홍제",
+      "direction": "down",
+      "ride": 8,
+      "rideExpress": null
+    },
+    {
+      "no": "326",
+      "name": "무악재",
+      "direction": "down",
+      "ride": 10,
+      "rideExpress": null
+    },
+    {
+      "no": "327",
+      "name": "독립문",
+      "direction": "down",
+      "ride": 12,
+      "rideExpress": null
+    },
+    {
+      "no": "328",
+      "name": "경복궁",
+      "direction": "down",
+      "ride": 15,
+      "rideExpress": null
+    },
+    {
+      "no": "329",
+      "name": "안국",
+      "direction": "down",
+      "ride": 17,
+      "rideExpress": null
+    },
+    {
+      "no": "330",
+      "name": "종로3가",
+      "direction": "down",
+      "ride": 19,
+      "rideExpress": null
+    },
+    {
+      "no": "331",
+      "name": "을지로3가",
+      "direction": "down",
+      "ride": 21,
+      "rideExpress": null
+    },
+    {
+      "no": "332",
+      "name": "충무로",
+      "direction": "down",
+      "ride": 23,
+      "rideExpress": null
+    },
+    {
+      "no": "333",
+      "name": "동대입구",
+      "direction": "down",
+      "ride": 25,
+      "rideExpress": null
+    },
+    {
+      "no": "334",
+      "name": "약수",
+      "direction": "down",
+      "ride": 27,
+      "rideExpress": null
+    },
+    {
+      "no": "335",
+      "name": "금호",
+      "direction": "down",
+      "ride": 29,
+      "rideExpress": null
+    },
+    {
+      "no": "336",
+      "name": "옥수",
+      "direction": "down",
+      "ride": 31,
+      "rideExpress": null
+    },
+    {
+      "no": "337",
+      "name": "압구정",
+      "direction": "down",
+      "ride": 34,
+      "rideExpress": null
+    },
+    {
+      "no": "338",
+      "name": "신사",
+      "direction": "down",
+      "ride": 36,
+      "rideExpress": null
+    },
+    {
+      "no": "339",
+      "name": "잠원",
+      "direction": "down",
+      "ride": 38,
+      "rideExpress": null
+    },
+    {
+      "no": "340",
+      "name": "고속터미널",
+      "direction": "down",
+      "ride": 40,
+      "rideExpress": null
+    },
+    {
+      "no": "341",
+      "name": "교대",
+      "direction": "down",
+      "ride": 42,
+      "rideExpress": null
+    },
+    {
+      "no": "342",
+      "name": "남부터미널",
+      "direction": "down",
+      "ride": 44,
+      "rideExpress": null
+    },
+    {
+      "no": "343",
+      "name": "양재",
+      "direction": "down",
+      "ride": 46,
+      "rideExpress": null
+    },
+    {
+      "no": "344",
+      "name": "매봉",
+      "direction": "down",
+      "ride": 48,
+      "rideExpress": null
+    },
+    {
+      "no": "345",
+      "name": "도곡",
+      "direction": "down",
+      "ride": 50,
+      "rideExpress": null
+    },
+    {
+      "no": "346",
+      "name": "대치",
+      "direction": "down",
+      "ride": 52,
+      "rideExpress": null
+    },
+    {
+      "no": "347",
+      "name": "학여울",
+      "direction": "down",
+      "ride": 54,
+      "rideExpress": null
+    },
+    {
+      "no": "348",
+      "name": "대청",
+      "direction": "down",
+      "ride": 56,
+      "rideExpress": null
+    },
+    {
+      "no": "349",
+      "name": "일원",
+      "direction": "down",
+      "ride": 58,
+      "rideExpress": null
+    },
+    {
+      "no": "350",
+      "name": "수서",
+      "direction": "down",
+      "ride": 60,
+      "rideExpress": null
+    },
+    {
+      "no": "351",
+      "name": "가락시장",
+      "direction": "down",
+      "ride": 63,
+      "rideExpress": null
+    },
+    {
+      "no": "352",
+      "name": "경찰병원",
+      "direction": "down",
+      "ride": 65,
+      "rideExpress": null
+    },
+    {
+      "no": "353",
+      "name": "오금",
+      "direction": "down",
+      "ride": 67,
+      "rideExpress": null
+    }
+  ],
+  "timetable": {
+    "weekday": {
+      "down": [
+        {
+          "t": "05:30",
+          "x": 0
+        },
+        {
+          "t": "05:38",
+          "x": 0
+        },
+        {
+          "t": "05:56",
+          "x": 0
+        },
+        {
+          "t": "06:09",
+          "x": 0
+        },
+        {
+          "t": "06:28",
+          "x": 0
+        },
+        {
+          "t": "06:45",
+          "x": 0
+        },
+        {
+          "t": "06:56",
+          "x": 0
+        },
+        {
+          "t": "07:05",
+          "x": 0
+        },
+        {
+          "t": "07:13",
+          "x": 0
+        },
+        {
+          "t": "07:21",
+          "x": 0
+        },
+        {
+          "t": "07:31",
+          "x": 0
+        },
+        {
+          "t": "07:42",
+          "x": 0
+        },
+        {
+          "t": "07:49",
+          "x": 0
+        },
+        {
+          "t": "07:57",
+          "x": 0
+        },
+        {
+          "t": "08:04",
+          "x": 0
+        },
+        {
+          "t": "08:11",
+          "x": 1
+        },
+        {
+          "t": "08:19",
+          "x": 1
+        },
+        {
+          "t": "08:33",
+          "x": 0
+        },
+        {
+          "t": "08:45",
+          "x": 0
+        },
+        {
+          "t": "08:53",
+          "x": 1
+        },
+        {
+          "t": "09:01",
+          "x": 1
+        },
+        {
+          "t": "09:09",
+          "x": 1
+        },
+        {
+          "t": "09:18",
+          "x": 0
+        },
+        {
+          "t": "09:28",
+          "x": 1
+        },
+        {
+          "t": "09:56",
+          "x": 1
+        },
+        {
+          "t": "10:21",
+          "x": 0
+        },
+        {
+          "t": "10:58",
+          "x": 0
+        },
+        {
+          "t": "11:17",
+          "x": 0
+        },
+        {
+          "t": "11:30",
+          "x": 0
+        },
+        {
+          "t": "11:56",
+          "x": 0
+        },
+        {
+          "t": "12:15",
+          "x": 0
+        },
+        {
+          "t": "12:35",
+          "x": 0
+        },
+        {
+          "t": "13:52",
+          "x": 0
+        },
+        {
+          "t": "14:12",
+          "x": 0
+        },
+        {
+          "t": "14:31",
+          "x": 0
+        },
+        {
+          "t": "14:52",
+          "x": 0
+        },
+        {
+          "t": "15:11",
+          "x": 0
+        },
+        {
+          "t": "16:28",
+          "x": 0
+        },
+        {
+          "t": "16:41",
+          "x": 0
+        },
+        {
+          "t": "16:51",
+          "x": 0
+        },
+        {
+          "t": "17:04",
+          "x": 0
+        },
+        {
+          "t": "17:12",
+          "x": 0
+        },
+        {
+          "t": "17:20",
+          "x": 0
+        },
+        {
+          "t": "17:28",
+          "x": 0
+        },
+        {
+          "t": "17:51",
+          "x": 0
+        },
+        {
+          "t": "18:00",
+          "x": 1
+        },
+        {
+          "t": "18:08",
+          "x": 0
+        },
+        {
+          "t": "18:16",
+          "x": 1
+        },
+        {
+          "t": "18:24",
+          "x": 1
+        },
+        {
+          "t": "18:32",
+          "x": 0
+        },
+        {
+          "t": "18:40",
+          "x": 0
+        },
+        {
+          "t": "18:50",
+          "x": 0
+        },
+        {
+          "t": "19:03",
+          "x": 0
+        },
+        {
+          "t": "19:13",
+          "x": 0
+        },
+        {
+          "t": "19:28",
+          "x": 0
+        },
+        {
+          "t": "19:38",
+          "x": 1
+        },
+        {
+          "t": "19:48",
+          "x": 0
+        },
+        {
+          "t": "19:58",
+          "x": 0
+        },
+        {
+          "t": "20:14",
+          "x": 0
+        },
+        {
+          "t": "20:30",
+          "x": 1
+        },
+        {
+          "t": "20:40",
+          "x": 0
+        },
+        {
+          "t": "21:00",
+          "x": 0
+        },
+        {
+          "t": "21:12",
+          "x": 0
+        },
+        {
+          "t": "22:10",
+          "x": 1
+        },
+        {
+          "t": "22:42",
+          "x": 1
+        },
+        {
+          "t": "23:44",
+          "x": 0
+        },
+        {
+          "t": "24:02",
+          "x": 1
+        }
+      ],
+      "up": []
+    },
+    "saturday": {
+      "down": [],
+      "up": []
+    },
+    "holiday": {
+      "down": [],
+      "up": []
+    }
+  }
+}
