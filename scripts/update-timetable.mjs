@@ -155,6 +155,20 @@ async function fetchStationTimetable(stationCode, weekTag, dirTag) {
     .filter((t) => t.leave !== null && t.trainNo);
 }
 
+/**
+ * 구파발에서 운행을 마치는 열차를 걸러냅니다.
+ *
+ * 종착 열차는 여기서 더 출발하지 않으므로 API가 출발시각(LEFTTIME)에
+ * 00:00:00 을 보냅니다. 그대로 두면 '자정 출발 열차'로 오인되어
+ * 출발 시간표 맨 앞에 유령 열차가 잔뜩 쌓입니다.
+ *
+ * 도착 시각만 쓰는 '도착역' 시간표에는 적용하면 안 됩니다. 그 역이 종착역인
+ * 열차까지 사라져 소요시간을 못 구하게 됩니다. 출발역 시간표에만 씁니다.
+ */
+function onlyDeparting(trains, originName) {
+  return trains.filter((t) => t.dest !== originName && t.leave !== 0);
+}
+
 // ---------------------------------------------------------------- 3) 역간 소요시간
 
 function rideMinutesFrom(originTrains, destTrains) {
@@ -205,7 +219,8 @@ async function main() {
   for (const [dayKey, weekTag] of Object.entries(WEEK_TAGS)) {
     timetable[dayKey] = {};
     for (const [dirKey, dirTag] of Object.entries(DIR_TAGS)) {
-      const trains = await fetchStationTimetable(origin.code, weekTag, dirTag);
+      const raw = await fetchStationTimetable(origin.code, weekTag, dirTag);
+      const trains = onlyDeparting(raw, ORIGIN_NAME);
       trains.sort((a, b) => a.leave - b.leave);
       if (dayKey === 'weekday') originTrains[dirKey] = trains;
       timetable[dayKey][dirKey] = trains.map((t) => ({
@@ -213,7 +228,11 @@ async function main() {
         x: t.express,
         ...(t.dest ? { dest: t.dest } : {}),
       }));
-      console.log(`    ${dayKey}/${dirKey}: ${trains.length}편`);
+      const dropped = raw.length - trains.length;
+      console.log(
+        `    ${dayKey}/${dirKey}: ${trains.length}편` +
+        (dropped ? ` (${ORIGIN_NAME} 종착 ${dropped}편 제외)` : '')
+      );
     }
   }
 
