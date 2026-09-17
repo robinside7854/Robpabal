@@ -22,7 +22,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      # enablement: true — 저장소 Settings에서 Pages를 직접 켜지 않아도
+      # 이 워크플로가 Pages를 자동으로 켭니다. (Pages를 쓸 수 있는 저장소일 때)
       - uses: actions/configure-pages@v5
+        with:
+          enablement: true
       - uses: actions/upload-pages-artifact@v3
         with:
           path: '.'
