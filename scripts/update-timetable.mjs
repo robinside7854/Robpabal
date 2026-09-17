@@ -28,12 +28,17 @@ const LINE = '3';
 
 /** API의 요일 코드 */
 const WEEK_TAGS = { weekday: '1', saturday: '2', holiday: '3' };
-/** API의 상하행 코드. 3호선은 상행=대화 방향, 하행=오금 방향 */
-const DIR_TAGS = { up: '1', down: '2' };
+/**
+ * API의 상하행 코드. 3호선은 상행=대화 방향, 하행=오금 방향.
+ * 이 앱은 구파발에서 도심으로 나가는 '오금 방향'만 다루므로 하행만 씁니다.
+ */
+const DIR_TAGS = { down: '2' };
 
 /** 이 값보다 적게 나오면 "데이터가 깨졌다"고 보고 파일을 덮어쓰지 않습니다. */
-const MIN_STATIONS = 40;
+const MIN_STATIONS = 30;
 const MIN_WEEKDAY_TRAINS = 30;
+/** 구파발 시발 열차가 이보다 적으면 수집이 잘못된 것으로 봅니다. */
+const MIN_START_HERE = 10;
 
 // ---------------------------------------------------------------- 유틸
 
@@ -149,6 +154,8 @@ async function fetchStationTimetable(stationCode, weekTag, dirTag) {
         leave: leave ?? arrive,
         arrive: arrive ?? leave,
         express: /^(Y|E|D|1|급행)/i.test(expressRaw) ? 1 : 0,
+        // 시발역. 구파발에서 처음 출발하는 열차인지 가리는 데 씁니다.
+        start: pick(row, 'SUBWAYSNAME', 'ORG_STATION_NM', 'SUBWAYSNAME_H'),
         dest: pick(row, 'SUBWAYENAME', 'DEST_STATION_NM', 'SUBWAYENAME_H'),
       };
     })
@@ -226,12 +233,17 @@ async function main() {
       timetable[dayKey][dirKey] = trains.map((t) => ({
         t: toHHMM(t.leave),
         x: t.express,
+        // s:1 = 구파발이 시발역인 열차 (빈 차로 출발해 앉아서 갈 수 있음)
+        s: t.start === ORIGIN_NAME ? 1 : 0,
+        ...(t.start ? { from: t.start } : {}),
         ...(t.dest ? { dest: t.dest } : {}),
       }));
       const dropped = raw.length - trains.length;
+      const startHere = timetable[dayKey][dirKey].filter((t) => t.s).length;
       console.log(
         `    ${dayKey}/${dirKey}: ${trains.length}편` +
-        (dropped ? ` (${ORIGIN_NAME} 종착 ${dropped}편 제외)` : '')
+        ` (${ORIGIN_NAME} 시발 ${startHere}편 / 경유 ${trains.length - startHere}편)` +
+        (dropped ? ` · ${ORIGIN_NAME} 종착 ${dropped}편 제외` : '')
       );
     }
   }
@@ -240,11 +252,11 @@ async function main() {
   const originNo = Number(origin.no);
   const stations = [];
   for (const st of line3) {
-    if (st.name === ORIGIN_NAME) continue;
-    const direction = Number(st.no) < originNo ? 'up' : 'down';
-    const destTrains = await fetchStationTimetable(st.code, WEEK_TAGS.weekday, DIR_TAGS[direction]);
-    const { ride, rideExpress, matched } = rideMinutesFrom(originTrains[direction] || [], destTrains);
-    stations.push({ no: st.no, name: st.name, code: st.code, direction, ride, rideExpress });
+    // 구파발보다 앞선 역(대화 방향)은 이 앱의 대상이 아닙니다.
+    if (Number(st.no) <= originNo) continue;
+    const destTrains = await fetchStationTimetable(st.code, WEEK_TAGS.weekday, DIR_TAGS.down);
+    const { ride, rideExpress, matched } = rideMinutesFrom(originTrains.down || [], destTrains);
+    stations.push({ no: st.no, name: st.name, code: st.code, direction: 'down', ride, rideExpress });
     console.log(`    ${st.name}: ${ride ?? '?'}분 (일치 열차 ${matched}편)`);
   }
 
@@ -257,6 +269,15 @@ async function main() {
   const missingRide = stations.filter((s) => !s.ride).map((s) => s.name);
   if (missingRide.length > stations.length / 2) {
     problems.push(`소요시간을 못 구한 역이 너무 많습니다 (${missingRide.length}개)`);
+  }
+  // 이 앱의 핵심은 '구파발 시발 열차'입니다. 하나도 못 가려냈다면
+  // API 필드명이 바뀐 것이므로, 잘못된 데이터를 내보내지 않고 멈춥니다.
+  const startHereCount = (timetable.weekday?.down || []).filter((t) => t.s).length;
+  if (startHereCount < MIN_START_HERE) {
+    problems.push(
+      `${ORIGIN_NAME} 시발 열차를 ${startHereCount}편밖에 못 찾았습니다` +
+      ' (시발역 필드명이 바뀌었을 수 있습니다)'
+    );
   }
   if (problems.length) {
     console.error('\n검증 실패 — 기존 데이터를 그대로 둡니다:');
@@ -281,7 +302,6 @@ async function main() {
       line: LINE,
       origin: { no: origin.no, name: origin.name, code: origin.code },
       directions: {
-        up: { label: '대화 방향', terminal: '대화' },
         down: { label: '오금 방향', terminal: '오금' },
       },
       updatedAt: new Date().toISOString(),

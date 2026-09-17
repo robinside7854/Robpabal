@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="theme-color" content="#ef7c1c">
-<meta name="description" content="구파발역 3호선 출근길 도우미 — 도착역을 즐겨찾기하고 목표 도착 시각에 맞춰 집에서 나갈 시간을 알려줍니다.">
+<meta name="description" content="구파발역에서 처음 출발하는 3호선 열차만 골라, 앉아서 갈 수 있는 출근 시간을 알려줍니다.">
 <title>구파발 출근길 · 3호선</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -81,6 +81,12 @@
       </label>
       <input type="number" id="buffer" min="0" max="60" step="1" inputmode="numeric">
       <span class="unit">분</span>
+    </div>
+    <div class="field">
+      <label for="originOnly">구파발 시발 열차만
+        <small>여기서 처음 출발하는 빈 열차만 봅니다 (앉아서 가기)</small>
+      </label>
+      <input type="checkbox" id="originOnly" class="switch" checked>
     </div>
     <div class="field">
       <label>요일 기준
