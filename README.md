@@ -71,17 +71,27 @@ GitHub Actions 토큰에는 Pages 사이트를 새로 만들 권한이 없어서
 Pages를 켠 뒤에는 `Actions` 탭 → **GitHub Pages 배포** → `Re-run all jobs` 로 다시 돌리면 됩니다.
 (설정만 바꿔서는 배포가 다시 돌지 않습니다. 새 실행을 띄워야 합니다.)
 
-**기본 브랜치가 `main`이 아니면 배포가 막힙니다.**
-Pages를 켜면 GitHub이 `github-pages` 라는 배포 환경을 자동으로 만드는데,
-여기에는 "저장소의 기본 브랜치에서만 배포 허용" 이라는 규칙이 기본으로 붙습니다.
-배포 워크플로는 `main` 에서 도는데 기본 브랜치가 다른 이름이면 관문에서 거부됩니다.
+**배포 환경의 허용 브랜치에 `main` 이 없으면 막힙니다.**
+Pages를 켜면 GitHub이 `github-pages` 라는 배포 환경을 자동으로 만들면서,
+**그 시점의 기본 브랜치 이름**을 "배포 허용 브랜치"로 저장해둡니다.
+배포 워크플로는 `main` 에서 도는데 저장된 이름이 다르면 관문에서 거부됩니다.
 
-이때는 실행이 **몇 초 만에 실패하고 로그가 아예 없습니다.** 스텝이 하나도 실행되지
-않았기 때문입니다 (잡 상태가 `waiting` 으로 끝납니다). 로그가 없다고 당황하지 마시고
-`Settings` → `General` → `Default branch` 가 `main` 인지 확인하세요.
+중요한 점은 **나중에 기본 브랜치를 바꿔도 이미 저장된 허용 목록은 따라 바뀌지 않는다**는
+것입니다. 기본 브랜치만 `main` 으로 고쳐서는 해결되지 않습니다.
 
-기본 브랜치를 `main` 으로 맞추는 것은 어차피 필요합니다. 아래 **시간표 자동 업데이트**의
-예약 실행(cron)도 기본 브랜치에서만 동작하기 때문입니다.
+증상은 이렇습니다. 실행이 **몇 초 만에 실패하고 스텝 로그가 없습니다.** 스텝이 하나도
+실행되지 않았기 때문입니다. 대신 실행 페이지 아래 **Annotations** 에 사유가 찍힙니다.
+
+```
+Branch "main" is not allowed to deploy to github-pages due to environment protection rules.
+The deployment was rejected or didn't satisfy other protection rules.
+```
+
+해결: `Settings` → `Environments` → `github-pages` → `Deployment branches and tags` 에
+`main` 을 추가합니다. (환경을 아예 삭제하고 재실행해 다시 만들게 해도 됩니다)
+
+기본 브랜치도 `main` 으로 맞춰두세요. 배포와는 별개로, 아래 **시간표 자동 업데이트**의
+예약 실행(cron)이 기본 브랜치에서만 동작하기 때문입니다.
 
 > 설정값(도보 시간·즐겨찾기)은 서버가 아니라 **내 브라우저 안에만** 저장됩니다.
 > 다른 기기에서 열면 다시 설정해야 합니다.
