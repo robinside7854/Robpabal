@@ -48,15 +48,27 @@ python3 -m http.server 8000
 GitHub Pages는 **공개(Public) 저장소**에서 무료입니다. 비공개 저장소는 GitHub Pro 이상이어야 합니다.
 비공개 상태라면 `Settings` → 맨 아래 `Danger Zone` → `Change repository visibility` 에서 Public으로 바꿔주세요.
 
-그 다음은 자동입니다.
+**그리고 Pages를 한 번 켜주셔야 합니다.**
+`Settings` → 왼쪽 메뉴 `Pages` → `Source` 를 **GitHub Actions** 로 고릅니다.
+이 클릭은 사람이 직접 해야 합니다. 워크플로가 대신 켜보려 시도는 하지만,
+GitHub Actions 토큰에는 Pages 사이트를 새로 만들 권한이 없어서
+`Create Pages site failed. Error: Resource not accessible by integration` 으로 막힙니다.
+
+이 두 가지만 끝나면 나머지는 자동입니다.
 
 1. `main` 브랜치에 코드가 올라가면 배포 워크플로가 실행됩니다.
-2. 워크플로가 Pages 설정까지 알아서 켜줍니다. (`Settings` → `Pages` 를 직접 건드릴 필요 없습니다)
-3. 몇 분 뒤 `https://<내아이디>.github.io/<저장소이름>/` 에서 열립니다.
-4. 폰 브라우저로 접속해 **홈 화면에 추가**하면 앱처럼 쓸 수 있습니다.
+2. 몇 분 뒤 `https://<내아이디>.github.io/<저장소이름>/` 에서 열립니다.
+3. 폰 브라우저로 접속해 **홈 화면에 추가**하면 앱처럼 쓸 수 있습니다.
 
 배포가 실패하면 `Actions` 탭에서 **GitHub Pages 배포** 워크플로의 로그를 확인하세요.
-`Get Pages site failed ... Not Found` 라고 나오면 대개 저장소가 아직 비공개라서 그렇습니다.
+자주 나오는 두 가지는 이렇습니다.
+
+| 로그에 뜨는 말 | 뜻 |
+|---|---|
+| `Get Pages site failed ... Not Found` | Pages를 아직 안 켰습니다 (위 `Settings` → `Pages`) |
+| `Create Pages site failed ... Resource not accessible by integration` | 위와 같습니다. 워크플로가 대신 켜려다 권한이 없어 실패한 것입니다 |
+
+Pages를 켠 뒤에는 `Actions` 탭 → **GitHub Pages 배포** → `Re-run all jobs` 로 다시 돌리면 됩니다.
 
 > 설정값(도보 시간·즐겨찾기)은 서버가 아니라 **내 브라우저 안에만** 저장됩니다.
 > 다른 기기에서 열면 다시 설정해야 합니다.
