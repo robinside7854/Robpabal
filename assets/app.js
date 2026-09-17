@@ -233,7 +233,7 @@ function openFavDialog(id) {
   $('favDialogTitle').textContent = f ? '도착역 수정' : '도착역 추가';
   $('favLabel').value = f?.label || '';
   $('favOfficeWalk').value = f?.officeWalk ?? 5;
-  $('favTarget').value = f?.target || '09:00';
+  $('favTarget').value = f?.target || '09:30';
   fillStationSelect();
   if (f) $('favStation').value = f.station;
   else if ($('favStation').options.length) $('favStation').selectedIndex = 0;
@@ -248,7 +248,7 @@ function saveFav() {
     station,
     label: ($('favLabel').value || '').trim() || station,
     officeWalk: clampNum($('favOfficeWalk').value, 0, 120, 5),
-    target: /^\d{2}:\d{2}$/.test($('favTarget').value) ? $('favTarget').value : '09:00',
+    target: /^\d{2}:\d{2}$/.test($('favTarget').value) ? $('favTarget').value : '09:30',
   };
   if (editingId) {
     const f = favs.find((x) => x.id === editingId);
@@ -314,9 +314,10 @@ function renderPlan(fav, now) {
   const picked = pickTrains(dayType);
   const list = picked.list;
 
-  $('dirLabel').textContent = picked.filtering
-    ? `구파발 시발 ${picked.list.length}편`
-    : '오금 방향';
+  // 아래 계산이 끝나면 '목표 시각까지 몇 편 남았는지'로 채웁니다.
+  // 중간에 빠져나가는 경우를 대비해 기본값을 먼저 넣어둡니다.
+  const dirEl = $('dirLabel');
+  dirEl.textContent = '';
   $('deadlineLabel').textContent = '집에서 출발';
   $('sumRoute').innerHTML =
     `구파발<span class="arrow">→</span>${escapeHtml(fav.station)}` +
@@ -421,7 +422,16 @@ function renderPlan(fav, now) {
   const upcoming = plans.filter((p) => p.untilDepSec > 0);
   const catchable = upcoming.filter((p) => p.untilLeaveSec > 0);
   const missed = upcoming.filter((p) => p.untilLeaveSec <= 0);
-  const show = (catchable.length ? catchable : upcoming).slice(0, TRAIN_COUNT);
+
+  // 이 앱은 지각을 피하려고 쓰는 것이지 실시간 전광판이 아닙니다.
+  // 목표 시각을 넘겨 도착하는 열차는 볼 이유가 없으므로 빼둡니다.
+  // (소요시간 정보가 없어 판단할 수 없는 열차는 남깁니다)
+  const usable = catchable.filter((p) => p.onTime !== false);
+  const show = usable.slice(0, TRAIN_COUNT);
+
+  dirEl.textContent = usable.length
+    ? `${fav.target}까지 ${usable.length}편 남음`
+    : '오늘은 끝';
 
   const skipNote = catchable.length && missed.length
     ? `<p class="hint" style="margin:-2px 0 4px">지금 나가면 ` +
@@ -436,7 +446,12 @@ function renderPlan(fav, now) {
 
   $('trains').innerHTML = show.length
     ? flagNote + skipNote + show.map(trainCard).join('')
-    : emptyBox('오늘 남은 열차가 없습니다. 내일 첫차를 기다려주세요.');
+    : emptyBox(
+        catchable.length
+          ? `<b>${escapeHtml(fav.target)}</b>까지 ${escapeHtml(fav.label)}에 닿는 열차가 더 없습니다.<br>` +
+            '지금 나가면 언제 도착하는지는 위 칸에 있습니다.'
+          : '오늘 남은 열차가 없습니다. 내일 첫차를 기다려주세요.'
+      );
 }
 
 function setDeadline(time, note, count, cls, countLabel) {
