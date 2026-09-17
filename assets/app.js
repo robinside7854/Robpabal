@@ -28,7 +28,7 @@ let data = null;
 let dataError = null;
 let lastFetch = 0;
 
-let settings = { homeWalk: 15, buffer: 0, dayType: 'auto', activeFav: null };
+let settings = { homeWalk: 15, buffer: 0, dayType: 'auto', originOnly: true, activeFav: null };
 let favs = [];
 let editingId = null;
 
@@ -139,6 +139,30 @@ function resolveDayType(now) {
   return 'weekday';
 }
 
+/**
+ * 그 요일의 오금 방향 열차 목록을 고릅니다.
+ *
+ * 이 앱의 목적은 '구파발에서 처음 출발하는 열차'를 찾는 것입니다.
+ * 빈 차로 출발하니 앉아서 갈 수 있기 때문입니다. 대화·지축에서 오는
+ * 경유 열차는 이미 사람이 타 있어 기본적으로 숨깁니다.
+ *
+ * 다만 시간표 데이터가 아직 시발역 정보를 갖고 있지 않을 수 있습니다.
+ * 그때 필터를 걸면 화면이 텅 비므로, 전체를 보여주고 안내만 띄웁니다.
+ */
+function pickTrains(dayType) {
+  const all = data?.timetable?.[dayType]?.down || [];
+  const hasFlag = all.some((t) => t.s !== undefined);
+  const filtering = settings.originOnly && hasFlag;
+  return {
+    list: filtering ? all.filter((t) => t.s) : all,
+    total: all.length,
+    hasFlag,
+    filtering,
+    /** 필터를 켰지만 시발역 정보가 없어 적용하지 못한 상태 */
+    flagMissing: settings.originOnly && !hasFlag && all.length > 0,
+  };
+}
+
 /** 열차 한 편에 대한 모든 계산 */
 function planTrain(train, station, fav, nowSec) {
   const depSec = hhmmToMin(train.t) * 60;
@@ -192,18 +216,13 @@ function fillStationSelect() {
   const sel = $('favStation');
   if (!sel || !data) return;
   const prev = sel.value;
-  const groups = { down: [], up: [] };
-  for (const s of data.stations) (groups[s.direction] || groups.down).push(s);
-  for (const key of Object.keys(groups)) {
-    groups[key].sort((a, b) => (a.ride ?? 999) - (b.ride ?? 999));
-  }
-  const label = (key) => data.meta?.directions?.[key]?.label || key;
-  sel.innerHTML = ['down', 'up']
-    .filter((k) => groups[k].length)
-    .map((k) => `<optgroup label="${escapeHtml(label(k))}">${groups[k]
-      .map((s) => `<option value="${escapeHtml(s.name)}">${escapeHtml(s.name)}${
-        s.ride != null ? ` (${s.ride}분)` : ''}</option>`)
-      .join('')}</optgroup>`)
+  // 이 앱은 구파발에서 도심으로 나가는 오금 방향만 다룹니다.
+  const list = data.stations
+    .filter((st) => st.direction !== 'up')
+    .sort((a, b) => (a.ride ?? 999) - (b.ride ?? 999));
+  sel.innerHTML = list
+    .map((st) => `<option value="${escapeHtml(st.name)}">${escapeHtml(st.name)}${
+      st.ride != null ? ` (${st.ride}분)` : ''}</option>`)
     .join('');
   if (prev) sel.value = prev;
 }
@@ -292,11 +311,12 @@ function renderPlan(fav, now) {
   const station = stationByName(fav.station);
   const dayType = resolveDayType(now);
   const nowSec = serviceSec(now);
-  const dirKey = station?.direction || 'down';
-  const dirLabel = data.meta?.directions?.[dirKey]?.label || '';
-  const list = data.timetable?.[dayType]?.[dirKey] || [];
+  const picked = pickTrains(dayType);
+  const list = picked.list;
 
-  $('dirLabel').textContent = dirLabel;
+  $('dirLabel').textContent = picked.filtering
+    ? `구파발 시발 ${picked.list.length}편`
+    : '오금 방향';
   $('deadlineLabel').textContent = '집에서 출발';
   $('sumRoute').innerHTML =
     `구파발<span class="arrow">→</span>${escapeHtml(fav.station)}` +
@@ -306,6 +326,18 @@ function renderPlan(fav, now) {
     $('sumTarget').textContent = `'${fav.station}'역 정보를 찾을 수 없습니다.`;
     setDeadline('–', '역 정보 없음', '', 'bad');
     $('trains').innerHTML = emptyBox('시간표 데이터에 없는 역입니다. 즐겨찾기를 다시 설정해주세요.');
+    return;
+  }
+
+  // 이 앱은 구파발에서 도심으로 나가는 오금 방향만 다룹니다.
+  // 예전에 등록해둔 대화 방향 즐겨찾기가 남아 있을 수 있어 막아둡니다.
+  if (station.direction === 'up') {
+    $('sumTarget').textContent = `'${fav.station}'역은 대화 방향입니다.`;
+    setDeadline('–', '대화 방향은 다루지 않습니다', '', 'bad', '대상 아님');
+    $('trains').innerHTML = emptyBox(
+      '이 앱은 <b>구파발에서 도심으로 나가는 오금 방향</b>만 다룹니다.<br>' +
+      '⚙ 수정에서 도착역을 오금 방향 역으로 바꿔주세요.'
+    );
     return;
   }
 
@@ -323,8 +355,11 @@ function renderPlan(fav, now) {
   if (!list.length) {
     setDeadline('–', '시간표 없음', '', 'bad');
     $('trains').innerHTML = emptyBox(
-      `${DAY_LABEL[dayType]} ${dirLabel} 시간표가 아직 비어 있습니다.<br>` +
-      'README의 <b>자동 업데이트 켜기</b>를 따라 한 번 실행하면 채워집니다.'
+      picked.total
+        ? `${DAY_LABEL[dayType]}에는 <b>구파발 시발 열차</b>가 없습니다.<br>` +
+          '설정에서 <b>구파발 시발 열차만</b>을 꺼면 경유 열차까지 볼 수 있습니다.'
+        : `${DAY_LABEL[dayType]} 오금 방향 시간표가 아직 비어 있습니다.<br>` +
+          'README의 <b>자동 업데이트 켜기</b>를 따라 한 번 실행하면 채워집니다.'
     );
     return;
   }
@@ -388,14 +423,19 @@ function renderPlan(fav, now) {
   const missed = upcoming.filter((p) => p.untilLeaveSec <= 0);
   const show = (catchable.length ? catchable : upcoming).slice(0, TRAIN_COUNT);
 
-  const note = catchable.length && missed.length
+  const skipNote = catchable.length && missed.length
     ? `<p class="hint" style="margin:-2px 0 4px">지금 나가면 ` +
       `${missed.slice(0, 3).map((p) => secToHHMM(p.depSec)).join('·')}` +
       `${missed.length > 3 ? ` 외 ${missed.length - 3}편` : ''} 열차는 이미 탈 수 없어 건너뛰었습니다.</p>`
     : '';
 
+  const flagNote = picked.flagMissing
+    ? '<p class="hint warn-note">시간표에 아직 <b>시발역 정보</b>가 없어 경유 열차까지 함께 보여주고 있습니다. ' +
+      'Actions 탭에서 <b>시간표 자동 업데이트</b>를 한 번 실행하면 구파발 시발 열차만 골라집니다.</p>'
+    : '';
+
   $('trains').innerHTML = show.length
-    ? note + show.map(trainCard).join('')
+    ? flagNote + skipNote + show.map(trainCard).join('')
     : emptyBox('오늘 남은 열차가 없습니다. 내일 첫차를 기다려주세요.');
 }
 
@@ -466,6 +506,8 @@ function trainCard(p) {
       <div class="train-top">
         <span class="train-dep">${secToHHMM(p.depSec)}</span>
         <span class="train-dep-label">열차</span>
+        ${p.train.s ? '<span class="badge seat">🪑 시발</span>' : ''}
+        ${p.train.s === 0 ? `<span class="badge through">${escapeHtml(p.train.from || '경유')}발</span>` : ''}
         ${p.train.x ? '<span class="badge">급행</span>' : ''}
       </div>
       <div class="train-leave">
@@ -489,17 +531,16 @@ function renderSchedule(now) {
   const body = $('schedBody');
   if (body.hidden || !data) return;
 
-  const fav = activeFav();
-  const station = fav ? stationByName(fav.station) : null;
-  const dirKey = station?.direction || 'down';
   const dayType = resolveDayType(now);
-  const list = data.timetable?.[dayType]?.[dirKey] || [];
+  const picked = pickTrains(dayType);
+  const list = picked.list;
   const nowSec = serviceSec(now);
 
   if (!list.length) {
     body.innerHTML = emptyBox(
-      `${DAY_LABEL[dayType]} ${escapeHtml(data.meta?.directions?.[dirKey]?.label || '')} ` +
-      '시간표가 아직 비어 있습니다.'
+      picked.total
+        ? `${DAY_LABEL[dayType]}에는 구파발 시발 열차가 없습니다.`
+        : `${DAY_LABEL[dayType]} 오금 방향 시간표가 아직 비어 있습니다.`
     );
     return;
   }
@@ -525,9 +566,11 @@ function renderSchedule(now) {
 
   body.innerHTML = `
     <p class="hint" style="margin-bottom:10px">
-      ${escapeHtml(DAY_LABEL[dayType])} ·
-      ${escapeHtml(data.meta?.directions?.[dirKey]?.label || '')} ·
-      총 ${list.length}편 · 테두리 있는 숫자는 급행
+      ${escapeHtml(DAY_LABEL[dayType])} · 오금 방향 ·
+      ${picked.filtering
+        ? `구파발 시발 <b>${list.length}편</b> (전체 ${picked.total}편 중)`
+        : `총 ${list.length}편`} ·
+      테두리 있는 숫자는 급행
     </p>
     <table class="sched-table">
       <thead><tr><th>시</th><th>분</th></tr></thead>
@@ -601,6 +644,11 @@ function bindEvents() {
     saveStore();
     render();
   });
+  $('originOnly').addEventListener('change', (e) => {
+    settings.originOnly = e.target.checked;
+    saveStore();
+    render();
+  });
 
   $('schedToggle').addEventListener('click', () => {
     const body = $('schedBody');
@@ -622,6 +670,7 @@ function init() {
   $('homeWalk').value = settings.homeWalk;
   $('buffer').value = settings.buffer;
   $('dayType').value = settings.dayType;
+  $('originOnly').checked = settings.originOnly !== false;
   bindEvents();
   render();
   fetchData();
